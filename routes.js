@@ -1,4 +1,5 @@
 const controllers = require("./controllers");
+const authMiddleware = require('./middlewares/auth');
 
 module.exports = (app) => {
 	app.post("/users/signup", controllers.userController.signUp);
@@ -11,4 +12,9 @@ module.exports = (app) => {
 	app.patch("/posts/:id", controllers.postController.update);
 	app.delete("/posts/:id", controllers.postController.delete);
 	app.post("/posts/create", controllers.postController.create);
+
+
+	app.get('/protected', [ authMiddleware ], (req, res) => {
+		res.send('Authenticated, cool');
+	})
 };
