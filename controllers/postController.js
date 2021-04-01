@@ -83,3 +83,44 @@ exports.get = async (req, res) => {
 		});
 	}
 };
+
+// only update the content, not owner
+exports.update = async (req, res) => {
+	const { content = null } = req.body;
+	const { id = "" } = req.params;
+	if (!id) {
+		res.status(400);
+		return res.json({
+			success: false,
+			msg: "ID field is required...",
+		});
+	}
+	if (!content) {
+		res.status(400);
+		return res.json({
+			success: false,
+			msg: "content field is required, can't be null",
+		});
+	}
+	try {
+		const post = await Post.findByIdAndUpdate(id, { content });
+		if (!post) {
+			res.status(404);
+			return res.json({
+				success: false,
+				msg: `Post with id ${id} not found`,
+			});
+		}
+		return res.json({
+			success: true,
+			msg: "Successfully updated post",
+		});
+	} catch (err) {
+		console.log(err);
+		res.status(500);
+		return res.json({
+			success: false,
+			msg: "Server error... please contact admin",
+		});
+	}
+};
