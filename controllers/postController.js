@@ -124,3 +124,28 @@ exports.update = async (req, res) => {
 		});
 	}
 };
+
+exports.delete = async (req, res) => {
+	const { id } = req.params;
+	try {
+		const post = await Post.findByIdAndRemove(id);
+		if (!post) {
+			res.status(404);
+			return res.json({
+				success: false,
+				msg: `Post with id ${id} not found`,
+			});
+		}
+		return res.json({
+			success: true,
+			msg: "Successfully deleted post",
+		});
+	} catch (err) {
+		console.log(err);
+		res.status(500);
+		return res.json({
+			success: false,
+			msg: "Server error... please contact admin",
+		});
+	}
+};

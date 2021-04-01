@@ -33,5 +33,19 @@ postSchema.pre("save", async function (next) {
 	}
 });
 
+postSchema.pre("remove", async function (next) {
+	const post = this;
+	try {
+		const author = await User.findById(post.author);
+		author.posts.pull(post._id);
+		return next();
+	} catch (err) {
+		console.log(err);
+		console.log(
+			"Error saving, can't update user's post field. Please contact enginner / developer"
+		);
+	}
+});
+
 const Post = mongoose.model("Post", postSchema);
 module.exports = Post;

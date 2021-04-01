@@ -9,5 +9,6 @@ module.exports = (app) => {
 	app.get("/posts", controllers.postController.list);
 	app.get("/posts/:id", controllers.postController.get);
 	app.patch("/posts/:id", controllers.postController.update);
+	app.delete("/posts/:id", controllers.postController.delete);
 	app.post("/posts/create", controllers.postController.create);
 };
