@@ -17,4 +17,35 @@ exports.create = async (req, res) => {
 			msg: "Author and content fields are required",
 		});
 	}
+	try {
+		// check if user exists
+		const user = await User.findById(author);
+		if (!user) {
+			res.status(404);
+			return res.json({
+				success: false,
+				msg: `Error, can't find user with id ${author}`,
+			});
+		}
+
+		const post = new Post({
+			author,
+			content,
+		});
+
+		await post.save();
+		console.log("Successfully saved post!");
+		return res.json({
+			success: true,
+			msg: "Post created successfully!",
+			post,
+		});
+	} catch (err) {
+		console.log(err);
+		res.status(500);
+		return res.json({
+			success: false,
+			msg: "Server error, please contact admin...",
+		});
+	}
 };
