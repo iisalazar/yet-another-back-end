@@ -1,5 +1,6 @@
 const Post = require("../models/Post");
 const User = require("../models/User");
+const mongoose = require("mongoose");
 
 exports.list = async (req, res) => {
 	const posts = await Post.find();
@@ -46,6 +47,39 @@ exports.create = async (req, res) => {
 		return res.json({
 			success: false,
 			msg: "Server error, please contact admin...",
+		});
+	}
+};
+
+exports.get = async (req, res) => {
+	const { id = "" } = req.params;
+	try {
+		const post = await Post.findById(id);
+		if (!post) {
+			res.status(404);
+			return res.json({
+				success: false,
+				msg: `Post with id ${id} not found`,
+			});
+		}
+		return res.json({
+			success: true,
+			msg: "Successfully got post",
+			post,
+		});
+	} catch (err) {
+		console.log(err);
+		if (err instanceof mongoose.Error.CastError) {
+			res.status(400);
+			return res.json({
+				success: false,
+				msg: "Invalid ID provided",
+			});
+		}
+		res.status(500);
+		return res.json({
+			success: false,
+			msg: "Server error... please contact admin",
 		});
 	}
 };
