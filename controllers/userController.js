@@ -81,3 +81,23 @@ exports.checkAuth = async (req, res) => {
 		return res.json({ isLoggedIn: false });
 	}
 };
+
+
+exports.list = async (req, res) => {
+	const { email = "" } = req.query;
+	let filter = {}
+	if(email){
+		filter = {
+			email
+		}
+	}
+	let users = await User.find(filter)
+	if(users){
+		users = users.map( user => user.toJSON() )
+	}
+	return res.json({
+		success: true,
+		msg: "Got all users",
+		users
+	})
+}
