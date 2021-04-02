@@ -190,7 +190,7 @@ exports.acceptFriendRequest = async (req, res) => {
 			msg: `Users with IDs ${requestor} and ${recipient} do not exist`,
 		});
 	}
-
+	// change status of friend request from pending / requested to friends
 	const result = await Friendship.updateMany(
 		{
 			requestor,
@@ -200,8 +200,61 @@ exports.acceptFriendRequest = async (req, res) => {
 			status: 2,
 		}
 	);
-	res.json({
-		msg: "eah? ",
+	return res.json({
+		msg: `Friendship accepted`,
 		result,
+	});
+};
+
+exports.rejectFriendRequest = async (req, res) => {
+	// assumes that you pass a token, else request is rejected
+	// for now, I'll let them pass json data
+	// containing requestor and recepient
+
+	// this is working
+	const { requestor = "", recipient = "" } = req.body;
+	if (!requestor || !recipient) {
+		res.status(400);
+		return res.json({
+			success: false,
+			msg: "Requestor and recipient fields are required",
+		});
+	}
+
+	// first checks if both requestor and recipient users actually exist
+	const requestorUserObj = await User.findById(requestor);
+	const recipientUserObj = await User.findById(recipient);
+
+	if (!requestorUserObj || !recipientUserObj) {
+		res.status(404);
+		return res.json({
+			success: false,
+			msg: `Users with IDs ${requestor} and ${recipient} do not exist`,
+		});
+	}
+	// remove first entry of friendship, we'll need the ID
+	const friendshipA = await Friendship.findOneAndRemove({
+		requestor,
+		recipient,
+	});
+	// remove second entry of friendship, we'll need the ID
+	const friendshipB = await Friendship.findOneAndRemove({
+		requestor,
+		recipient,
+	});
+
+	// now, remove the friend ID from the friends array field
+	const updateUserA = await User.findOneAndUpdate(
+		{ _id: requestorUserObj },
+		{ $pull: { friends: friendshipA._id } }
+	);
+
+	const updateUserB = await User.findOneAndUpdate(
+		{ _id: recipientUserObj },
+		{ $pull: { friends: friendshipB._id } }
+	);
+
+	return res.json({
+		msg: `Friend request rejected`,
 	});
 };

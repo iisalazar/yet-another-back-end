@@ -22,4 +22,7 @@ module.exports = (app) => {
 	// friend-related request
 	app.post("/friends/add", controllers.userController.sendFriendRequest);
 	app.post("/friends/accept", controllers.userController.acceptFriendRequest);
+	// same controllers for rejecting and deleting friendship
+	app.post("/friends/reject", controllers.userController.rejectFriendRequest);
+	app.post("/friends/delete", controllers.userController.rejectFriendRequest);
 };
