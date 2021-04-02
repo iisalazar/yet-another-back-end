@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Friendship = require("../models/Friendship");
 
 const jwt = require("jsonwebtoken");
 
@@ -82,22 +83,125 @@ exports.checkAuth = async (req, res) => {
 	}
 };
 
-
 exports.list = async (req, res) => {
 	const { email = "" } = req.query;
-	let filter = {}
-	if(email){
+	let filter = {};
+	if (email) {
 		filter = {
-			email
-		}
+			email,
+		};
 	}
-	let users = await User.find(filter)
-	if(users){
-		users = users.map( user => user.toJSON() )
+	let users = await User.find(filter);
+	if (users) {
+		users = users.map((user) => user.toJSON());
 	}
 	return res.json({
 		success: true,
 		msg: "Got all users",
-		users
-	})
-}
+		users,
+	});
+};
+
+exports.sendFriendRequest = async (req, res) => {
+	// assumes that you pass a token, else request is rejected
+	// for now, I'll let them pass json data
+	// containing requestor and recepient
+
+	// this is working
+	const { requestor = "", recipient = "" } = req.body;
+	if (!requestor || !recipient) {
+		res.status(400);
+		return res.json({
+			success: false,
+			msg: "Requestor and recipient fields are required",
+		});
+	}
+
+	// first checks if both requestor and recipient users actually exist
+	const requestorUserObj = await User.findById(requestor);
+	const recipientUserObj = await User.findById(recipient);
+
+	if (!requestorUserObj || !recipientUserObj) {
+		res.status(404);
+		return res.json({
+			success: false,
+			msg: `Users with IDs ${requestor} and ${recipient} do not exist`,
+		});
+	}
+
+	// now, adds friendship entries to 'Friendship' collection
+	const friendshipA = new Friendship({
+		requestor: requestorUserObj,
+		recipient: recipientUserObj,
+		status: 0,
+	});
+	const friendshipB = new Friendship({
+		requestor: requestorUserObj,
+		recipient: recipientUserObj,
+		status: 1,
+	});
+
+	await friendshipA.save();
+	await friendshipB.save();
+
+	// up to here
+
+	const updateUserRequestor = await User.findOneAndUpdate(
+		{ _id: requestorUserObj },
+		{ $push: { friends: friendshipA._id } }
+	);
+
+	const updateUserRecipient = await User.findOneAndUpdate(
+		{ _id: recipientUserObj },
+		{ $push: { friends: friendshipB._id } }
+	);
+
+	// yep, working hanggang dito
+
+	return res.json({
+		success: true,
+		msg: "Friend request sent, currently pending.",
+	});
+};
+
+exports.acceptFriendRequest = async (req, res) => {
+	// assumes that you pass a token, else request is rejected
+	// for now, I'll let them pass json data
+	// containing requestor and recepient
+
+	// this is working
+	const { requestor = "", recipient = "" } = req.body;
+	if (!requestor || !recipient) {
+		res.status(400);
+		return res.json({
+			success: false,
+			msg: "Requestor and recipient fields are required",
+		});
+	}
+
+	// first checks if both requestor and recipient users actually exist
+	const requestorUserObj = await User.findById(requestor);
+	const recipientUserObj = await User.findById(recipient);
+
+	if (!requestorUserObj || !recipientUserObj) {
+		res.status(404);
+		return res.json({
+			success: false,
+			msg: `Users with IDs ${requestor} and ${recipient} do not exist`,
+		});
+	}
+
+	const result = await Friendship.updateMany(
+		{
+			requestor,
+			recipient,
+		},
+		{
+			status: 2,
+		}
+	);
+	res.json({
+		msg: "eah? ",
+		result,
+	});
+};
