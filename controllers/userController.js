@@ -43,6 +43,7 @@ exports.login = async (req, res) => {
 		console.log("isMatch?", isMatch);
 		if (!isMatch) {
 			console.log("wrong password");
+			res.status(400);
 			return res.json({ msg: "wrong password " });
 		}
 
