@@ -3,7 +3,7 @@ const User = require("../models/User");
 const mongoose = require("mongoose");
 
 exports.list = async (req, res) => {
-	let posts = await Post.find().populate("author");
+	let posts = await Post.find().populate("author").sort({ createdAt: "desc" });
 
 	res.json({
 		posts,
