@@ -6,8 +6,9 @@ const Post = require("./models/Post");
 const seed = async () => {
 	try {
 		const users = await User.find();
-		const user = users[0];
-		// console.log(user);
+		const user = users[Math.floor(Math.random() * users.length - 1)];
+		console.log(user);
+		if (!user) return;
 		const post = {
 			author: user._id,
 			content: faker.lorem.paragraphs(3),
@@ -35,7 +36,11 @@ const createFakeUser = async () => {
 	process.exit(0);
 };
 
-for (let i = 0; i < 10; i++) {
+// for (let i = 0; i < 10; i++) {
+// 	createFakeUser();
+// }
+
+for (let j = 0; j < 5; j++) {
 	seed();
 }
 // createFakeUser();
