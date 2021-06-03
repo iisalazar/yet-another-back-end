@@ -37,6 +37,7 @@ exports.create = async (req, res) => {
 
 		await post.save();
 		console.log("Successfully saved post!");
+		post.author = user;
 		return res.json({
 			success: true,
 			msg: "Post created successfully!",
