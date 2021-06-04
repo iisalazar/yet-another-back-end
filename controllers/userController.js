@@ -244,16 +244,29 @@ exports.acceptFriendRequest = async (req, res) => {
 		});
 	}
 	// change status of friend request from pending / requested to friends
+
 	const result = await Friendship.updateMany(
 		{
 			requestor,
 			recipient,
 		},
 		{
-			status: 2,
+			$set: {
+				status: 2,
+			},
+		},
+		function (err, result) {
+			if (err) {
+				console.log("Error updating data.. ", err);
+				return;
+			}
+			console.log("Result: ", result);
 		}
 	);
+
+	// console.log(friendship);
 	return res.json({
+		success: true,
 		msg: `Friendship accepted`,
 		result,
 	});
