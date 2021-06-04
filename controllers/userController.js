@@ -76,7 +76,17 @@ exports.checkAuth = async (req, res) => {
 		);
 		const userId = payload._id;
 		// check if user exists
-		const user = await User.findById(userId);
+		let user = await User.findById(userId).populate({
+			path: "friends",
+			populate: [
+				{
+					path: "requestor",
+				},
+				{
+					path: "recipient",
+				},
+			],
+		});
 
 		if (!user) {
 			res.json({ isLoggedIn: false });
@@ -101,7 +111,7 @@ exports.list = async (req, res) => {
 			email,
 		};
 	}
-	let users = await User.find(filter);
+	let users = await User.find(filter).populate("friends");
 	if (users) {
 		users = users.map((user) => user.toJSON());
 	}
@@ -110,6 +120,36 @@ exports.list = async (req, res) => {
 		msg: "Got all users",
 		users,
 	});
+};
+
+exports.getFriendship = async (req, res) => {
+	try {
+		const { requestor = "", recipient = "" } = req.body;
+		if (!requestor || !recipient) {
+			res.status(400);
+			return res.json({
+				success: false,
+				msg: "Requestor and recipient fields are required",
+			});
+		}
+
+		// first checks if both requestor and recipient users actually exist
+		const requestorUserObj = await User.findById(requestor);
+		const recipientUserObj = await User.findById(recipient);
+
+		if (!requestorUserObj || !recipientUserObj) {
+			res.status(404);
+			return res.json({
+				success: false,
+				msg: `Users with IDs ${requestor} and ${recipient} do not exist`,
+			});
+		}
+	} catch (err) {
+		console.log(err);
+		return res.json({
+			msg: "server error",
+		});
+	}
 };
 
 exports.sendFriendRequest = async (req, res) => {
@@ -168,9 +208,12 @@ exports.sendFriendRequest = async (req, res) => {
 
 	// yep, working hanggang dito
 
+	console.log(friendshipA);
+
 	return res.json({
 		success: true,
 		msg: "Friend request sent, currently pending.",
+		friendship: friendshipA,
 	});
 };
 
