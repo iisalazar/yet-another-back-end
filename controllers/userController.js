@@ -76,17 +76,19 @@ exports.checkAuth = async (req, res) => {
 		);
 		const userId = payload._id;
 		// check if user exists
-		let user = await User.findById(userId).populate({
-			path: "friends",
-			populate: [
-				{
-					path: "requestor",
-				},
-				{
-					path: "recipient",
-				},
-			],
-		});
+		let user = await User.findById(userId).populate([
+			{
+				path: "friends",
+				populate: [
+					{
+						path: "requestor",
+					},
+					{
+						path: "recipient",
+					},
+				],
+			},
+		]);
 
 		if (!user) {
 			res.json({ isLoggedIn: false });
@@ -321,6 +323,7 @@ exports.rejectFriendRequest = async (req, res) => {
 	);
 
 	return res.json({
+		success: true,
 		msg: `Friend request rejected`,
 	});
 };
