@@ -24,9 +24,25 @@ module.exports = (app) => {
 	});
 
 	// friend-related request
-	app.post("/friends/add", controllers.userController.sendFriendRequest);
-	app.post("/friends/accept", controllers.userController.acceptFriendRequest);
+	app.post(
+		"/friends/add",
+		[authMiddleware],
+		controllers.userController.sendFriendRequest
+	);
+	app.post(
+		"/friends/accept",
+		[authMiddleware],
+		controllers.userController.acceptFriendRequest
+	);
 	// same controllers for rejecting and deleting friendship
-	app.post("/friends/reject", controllers.userController.rejectFriendRequest);
-	app.post("/friends/delete", controllers.userController.rejectFriendRequest);
+	app.post(
+		"/friends/reject",
+		[authMiddleware],
+		controllers.userController.rejectFriendRequest
+	);
+	app.post(
+		"/friends/delete",
+		[authMiddleware],
+		controllers.userController.rejectFriendRequest
+	);
 };
