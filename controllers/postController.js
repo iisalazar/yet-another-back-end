@@ -3,6 +3,7 @@ const User = require("../models/User");
 const mongoose = require("mongoose");
 
 exports.list = async (req, res) => {
+	console.log(req.user || "No user found");
 	let posts = await Post.find().populate("author").sort({ createdAt: "desc" });
 
 	res.json({
@@ -105,7 +106,8 @@ exports.update = async (req, res) => {
 		});
 	}
 	try {
-		const post = await Post.findByIdAndUpdate(id, { content });
+		// const post = await Post.findByIdAndUpdate(id, { content });
+		const post = await Post.findById(id);
 		if (!post) {
 			res.status(404);
 			return res.json({
@@ -113,9 +115,22 @@ exports.update = async (req, res) => {
 				msg: `Post with id ${id} not found`,
 			});
 		}
+		// console.log(, req.user._id);
+
+		if (!post.author.equals(req.user._id)) {
+			res.status(403);
+			return res.json({
+				success: false,
+				msg: "Unauthorized, can' edit someone else's post",
+			});
+		}
+		post.content = content;
+		await post.save();
+
 		return res.json({
 			success: true,
 			msg: "Successfully updated post",
+			post: post,
 		});
 	} catch (err) {
 		console.log(err);
@@ -130,7 +145,8 @@ exports.update = async (req, res) => {
 exports.delete = async (req, res) => {
 	const { id } = req.params;
 	try {
-		const post = await Post.findByIdAndRemove(id);
+		// const post = await Post.findByIdAndRemove(id);
+		const post = await Post.findById(id);
 		if (!post) {
 			res.status(404);
 			return res.json({
@@ -138,9 +154,19 @@ exports.delete = async (req, res) => {
 				msg: `Post with id ${id} not found`,
 			});
 		}
+		if (!post.author.equals(req.user._id)) {
+			res.status(403);
+			return res.json({
+				success: false,
+				msg: "Unauthorized, can' edit someone else's post",
+			});
+		}
+
+		await Post.findByIdAndRemove(id);
 		return res.json({
 			success: true,
 			msg: "Successfully deleted post",
+			post: post,
 		});
 	} catch (err) {
 		console.log(err);
